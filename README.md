@@ -128,21 +128,22 @@ discord_gemini_bot/
 │   └── output.py                 # 音声出力(ボイスチャンネル内でのTTS)(未実装)
 ├── context/
 │   ├── context_builder.py        # sessionID, DiscordIDから該当の会話の要約と記憶データから現在の"文脈"を構築
-|   ├── memory_utils.py           # ユーザーごとにパーソナライズされた記憶データの保存・読み込み
-|   └── session_manager.py        # 文脈データ(会話履歴の要約)の保存・読み込み
+|   ├── memory_utils.py           # 文脈データ、ユーザーごとにパーソナライズされた記憶データの保存・読み込み
+|   └── session_manager.py        # スレッドとセッションの管理(スレッド作成, 削除(未実装), メタデータの保存と更新)
 ├──prompts/
 │   ├── ask.txt                   # 一問一答用プロンプトテンプレート
 │   ├── newsession.txt            # 新規会話用プロンプトテンプレート
-|   └── talk.txt                  # 文脈を利用した会話のプロンプトテンプレート(文脈データ更新までを含める)
+|   └── talk.txt                  # 文脈と記憶を利用した会話のプロンプトテンプレート
 ├── data/
-│   ├── history/
-│   │   ├user123_history.json     # ユーザーごとの直近の会話履歴ファイル
-│   │   └...
 │   ├── memory/
-│   │   ├user123_memory.json      # ユーザーごとの長期記憶情報
+│   │   ├{userID}.json            # セッションを跨いだユーザーごとの長期記憶情報
+│   │   └...
+│   ├── session/
+│   │   ├{userID}_{sessionID}.json# セッションごとの文脈情報
+│   │   ├session_threads.json     # セッションごとのメタデータ
 │   │   └...
 │   ├── config.json               # プロンプトのパスなどのBotの設定ファイル
-│   ├── toggle_state.json         # On/Offの状態保存ファイル
+│   ├── toggle_state.json         # On/Offの状態保存
 │   └── topics.json               # 会話のタグ一覧と分類情報
 ├──img/
 │   └── icon.png                  # Discordのアイコン画像
@@ -187,7 +188,7 @@ D. プロンプト拡張構造
 system: 設定と回答形式など(prompts/ask.txt等を参照)
 主題タグ: #ExampleTopic
 直近の発話要約: 会話履歴の要約形式(n件)
-長期メモリ要約: 重要トピックの要点記録
+長期記憶: 今後の回答生成に必要なユーザー情報
 発話本文: ユーザーの今回の入力
 ```
 
@@ -199,7 +200,8 @@ E. スレッド管理
 ### 各種関係コマンド一覧
 |機能カテゴリ|コマンド名|引数|説明|
 |----|----|----|----|
-|新規セッション開始|/newsession|main_text|発話から主題タグを抽出し、スレッドを新規作成または再利用し、文脈管理を開始|
+|新規セッション開始|/newsession|main_text,model|発話から主題タグを抽出し、スレッドを新規作成または再利用し、文脈管理を開始|
+|セッション内会話|/talk|main_text,model|スレッドIDからセッション情報を読み込み、返答と文脈情報および記憶情報の更新を行う|
 |セッション終了・削除|/delete_session|sesseion|指定したセッション(タグ)を削除。対応スレッドも閉鎖または削除|
 |セッション表示|/allsessions|None|自身が所属するセッション(タグ・スレッド)一覧を表示|
 |セッション共有|/share_session|session, user|指定ユーザーを該当スレッドに招待し、対話を共有|
@@ -211,13 +213,11 @@ E. スレッド管理
 ### セッションの定義
 |項目|内容|
 |----|----|
-|セッションID|tagをもとに一意なIDを生成(例: travel_planning)|
+|セッションID|Discord上のスレッドIDと1:1で対応|
 |主題タグ|発話から抽出される主題を表す単語または句(例: 旅行計画, 転職活動, BOT作成)|
 |文脈履歴|過去のユーザー発話・応答履歴を簡略化して保存(トークン制限を考慮)
-|スレッドID|Discord上のスレッドと1:1で対応|
 |作成者|セッションの作成元ユーザーID|
 |参加者|スレッドに参加している他のユーザーIDリスト|
-|ステータス|active, archived, deleted など|
 
 ### セッション管理による対話フロー
 ```mermaid
@@ -238,18 +238,24 @@ graph TD;
 - 最新の数ラウンド分のみをBot応答時に読み込み。
 
 #### フォーマット(暫定的にJSONで実装予定。各機能追加後のブラッシュアップでDB移行を検討。)
+- data/session/session_threads.json
 ```JSON
 {
-  "session_id": "travel_planning",
-  "tag": "旅行計画",
-  "creator_id": "123456789",
-  "thread_id": "987654321",
-  "participants": ["123456789", "234567890"],
-  "context_history": [
-    {"role": "user", "content": "今度の休みに1泊で旅行に行きたいんだけど、どこがおすすめ？"},
-    {"role": "bot", "content": "予算や行動範囲は決まっていますか？"},
-  ]
+  "スレッドID": {
+    "session_id": "内部管理用セッションID",
+    "user_id": "ユーザーID",
+    "topic": "会話の主題",
+    "model": "Geminiのモデル名(例:gemini-2.5-flash)"
+  }
 }
+```
+- data/session/{userID}_{sessionID}.json
+```JSON
+[
+  "1つ目の会話の要約",
+  "2つ目の会話の要約",
+  ...
+]
 ```
 
 ### スレッド権限管理ポリシー
