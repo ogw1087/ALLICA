@@ -16,10 +16,10 @@ def setup(bot):
     )
     @app_commands.choices(
         model=[
-            app_commands.Choice(name="2.5_flash", value="gemini-2.5-flash-preview-04-17"),
-            app_commands.Choice(name="2.5_flash-thinking", value="gemini-2.5-flash-preview-04-17-thinking"),
-            app_commands.Choice(name="2.0_flash", value="gemini-2.0-flash-001"),
-            app_commands.Choice(name="2.0_flash-lite", value="gemini-2.0-flash-lite-001")
+            app_commands.Choice(name="2.5_flash",           value="gemini-2.5-flash"),
+            app_commands.Choice(name="2.5_flash-lite",      value="gemini-2.5-flash-lite-preview-06-17"),
+            app_commands.Choice(name="2.0_flash",           value="gemini-2.0-flash-001"),
+            app_commands.Choice(name="2.0_flash-lite",      value="gemini-2.0-flash-lite-001"),
         ]
     )
     async def ask(interaction: discord.Interaction, question: str, model: app_commands.Choice[str]):

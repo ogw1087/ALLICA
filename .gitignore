@@ -1,3 +1,5 @@
 memo.txt
 .env
 get_models.py
+models_*.log
+/data/

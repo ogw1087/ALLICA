@@ -116,7 +116,9 @@ python bot.py
 discord_gemini_bot/
 ├── bot.py                        # エントリーポイント(Botの起動)
 ├── commands/
-│   ├── ask.py                    # 対話コマンド(/ask)の処理
+│   ├── ask.py                    # 一問一答コマンド(/ask)の処理
+│   ├── newsession.py             # 会話の開始コマンド
+│   ├── talk.py                   # セッション内での会話用コマンド
 │   ├── toggle.py                 # ON/OFF切り替えコマンド(管理者用)
 │   └── limiter.py                # トークン・使用回数制限管理(未実装)
 ├── gemini/
@@ -125,12 +127,13 @@ discord_gemini_bot/
 │   ├── input.py                  # 音声入力(Whisperなど)(未実装)
 │   └── output.py                 # 音声出力(ボイスチャンネル内でのTTS)(未実装)
 ├── context/
-│   ├── history_manager.py        # ユーザー/チャンネルごとの直近履歴のロード・保存・取得(短期記憶)(未実装)
-│   ├── memory_manager.py         # 長期記憶の読み書き、記憶更新(パーソナリティ、好みなど)(未実装)
-│   ├── topic_manager.py          # トピック分類・タグ付け・会話の話題管理(将来拡張)(未実装)
-│   └── context_builder.py        # 現在の質問・履歴・記憶を組み合わせた文脈生成ロジック(未実装)
+│   ├── context_builder.py        # sessionID, DiscordIDから該当の会話の要約と記憶データから現在の"文脈"を構築
+|   ├── memory_utils.py           # ユーザーごとにパーソナライズされた記憶データの保存・読み込み
+|   └── session_manager.py        # 文脈データ(会話履歴の要約)の保存・読み込み
 ├──prompts/
-│   └── ask.txt                   # 対話用プロンプトテンプレート
+│   ├── ask.txt                   # 一問一答用プロンプトテンプレート
+│   ├── newsession.txt            # 新規会話用プロンプトテンプレート
+|   └── talk.txt                  # 文脈を利用した会話のプロンプトテンプレート(文脈データ更新までを含める)
 ├── data/
 │   ├── history/
 │   │   ├user123_history.json     # ユーザーごとの直近の会話履歴ファイル
@@ -138,7 +141,7 @@ discord_gemini_bot/
 │   ├── memory/
 │   │   ├user123_memory.json      # ユーザーごとの長期記憶情報
 │   │   └...
-│   ├── config.json               # プロンプトなどのBotの設定ファイル
+│   ├── config.json               # プロンプトのパスなどのBotの設定ファイル
 │   ├── toggle_state.json         # On/Offの状態保存ファイル
 │   └── topics.json               # 会話のタグ一覧と分類情報
 ├──img/
