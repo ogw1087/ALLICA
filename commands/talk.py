@@ -13,7 +13,7 @@ class Talk(commands.Cog):
 
     @app_commands.command(
         name="talk",
-        description="アリカと会話します"
+        description="アリカと会話します(セッション内限定)"
     )
     @app_commands.describe(
         message="話しかける内容を入力してください",
