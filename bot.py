@@ -24,6 +24,8 @@ from commands.ask import setup as setup_ask
 from commands.toggle import setup as setup_toggle
 from commands.newsession import setup as setup_newsession
 from commands.talk import setup as setup_talk
+from commands.change_model import setup as setup_change_model
+from commands.delete_session import setup as setup_delete_session
 
 # リスナー読み込み
 from listeners.mention_listener import setup as setup_mention_listener
@@ -36,7 +38,9 @@ async def on_ready():
     await setup_newsession(bot)
     await setup_talk(bot)
     await setup_mention_listener(bot)
-    
+    await setup_change_model(bot)
+    await setup_delete_session(bot)
+
     await bot.tree.sync()
     print(f"✅ Bot is ready. Logged in as {bot.user}")
 

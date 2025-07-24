@@ -71,7 +71,7 @@ def update_session_model(thread_id: int, new_model: str):
 
 def delete_session(thread_id: int):
     """
-    スレッド ID に紐づくセッションを session_threads.json から削除する。
+    スレッドIDに紐づくセッションをsession_threads.jsonから削除する。
     """
     import json
     import os
