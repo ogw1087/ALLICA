@@ -68,3 +68,23 @@ def update_session_model(thread_id: int, new_model: str):
         sessions[str(thread_id)]["model"] = new_model
         with open(SESSION_FILE, 'w', encoding='utf-8') as f:
             json.dump(sessions, f, ensure_ascii=False, indent=2)
+
+def delete_session(thread_id: int):
+    """
+    スレッド ID に紐づくセッションを session_threads.json から削除する。
+    """
+    import json
+    import os
+
+    path = os.path.join("data", "session", "session_threads.json")
+    if not os.path.exists(path):
+        return
+
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    str_id = str(thread_id)
+    if str_id in data:
+        del data[str_id]
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
