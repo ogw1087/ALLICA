@@ -81,12 +81,13 @@ pip install -r requirements.txt
 
 ### 6. **Discord Botの設定と招待**
 [Discord Developer Portal](https://discord.com/developers/applications)にアクセスして先ほど作成したアプリケーションの設定画面を開く。<br>
-General Information で名称と説明を記述する。(botのプロフィールに反映される。)<br>
-OAuth2 > OAuth2 URL Generator > SCOPES にて "bot" にチェックすると、下部に Bot Permissions が現れる。<br>
-Text Permissions の Send Messages(メッセージ送信), Attach Files(画像等の添付), Read Message History(メッセージ履歴の参照), Use Slash Commands(スラッシュコマンドの利用)<br>
+左部のメニューから General Information で名称と説明を記述する。(botのプロフィールに反映される。)<br>
+左部のメニュー Bot > MESSAGE CONTENT INTENT をONにする。
+左部メニュー OAuth2 > OAuth2 URL Generator > SCOPES にて "bot" にチェックすると、下部に Bot Permissions が現れる。<br>
+Text Permissions の Send Messages(メッセージ送信), Create Public Threads(パブリックスレッドの作成), Create Private Threads(プライベートスレッドの作成), Send Messages in Threads(スレッドへのメッセージ送信), Manage Threads(スレッドの管理), Attach Files(画像等の添付), Read Message History(メッセージ履歴の参照), Use Slash Commands(スラッシュコマンドの利用)<br>
 Voice Permissions の Connect(ボイスチャンネルへの参加), Speak(ボイスチャンネルへの音声出力)にチェックを入れる。<br>
 下部のGENERATED URLよりコピーしたリンクを適当なブラウザで開き、Botを任意のサーバーへ招待する。<br>
-(リンクに`permissions=2150729728`が含まれていれば上記の権限が適切に選択できている。)
+(リンクに`permissions=397287720960`が含まれていれば上記の権限が適切に選択できている。)
 
 招待したBotに`Bot`タグを追加する。
 
@@ -102,8 +103,20 @@ python bot.py
 
 ## 現在利用可能なコマンド
 
-- チャットによる対話
+- チャットによる一問一答
 `/ask question:質問内容 model:Geminiのモデル`
+
+- 新規プライベートセッションの開始
+`/newsession message:送信メッセージ model:Geminiのモデル`
+
+- プライベートセッション内メッセージ送信
+`/talk message:送信メッセージ (model:Geminiのモデル (デフォルト値に開始時のモデル))`
+
+- セッション内モデル変更
+`/change_model:Geminiのモデル`
+
+- セッション情報の削除
+`/delete_session:セッション情報とスレッドの削除`
 
 - 機能のON/OFFの切り替え(管理者)
 `/toggle`
@@ -114,44 +127,46 @@ python bot.py
 
 ```
 discord_gemini_bot/
-├── bot.py                        # エントリーポイント(Botの起動)
+├── bot.py                          # エントリーポイント(Botの起動)
 ├── commands/
-│   ├── ask.py                    # 一問一答コマンド(/ask)の処理
-│   ├── newsession.py             # 会話の開始コマンド
-│   ├── talk.py                   # セッション内での会話用コマンド
-│   ├── toggle.py                 # ON/OFF切り替えコマンド(管理者用)
-│   └── limiter.py                # トークン・使用回数制限管理(未実装)
+│   ├── ask.py                      # 一問一答コマンド(/ask)の処理
+│   ├── newsession.py               # 会話の開始コマンド
+│   ├── talk.py                     # セッション内での会話用コマンド
+│   ├── change_model.py             # セッション内でのモデル変更コマンド
+│   ├── delete_model.py             # セッション削除コマンド
+│   ├── toggle.py                   # ON/OFF切り替えコマンド(管理者用)
+│   └── limiter.py                  # トークン・使用回数制限管理(未実装)
 ├── gemini/
-│   └── client.py                 # Gemini APIとのやりとり
+│   └── client.py                   # Gemini APIとのやりとり
 ├── voice/
-│   ├── input.py                  # 音声入力(Whisperなど)(未実装)
-│   └── output.py                 # 音声出力(ボイスチャンネル内でのTTS)(未実装)
+│   ├── input.py                    # 音声入力(Whisperなど)(未実装)
+│   └── output.py                   # 音声出力(ボイスチャンネル内でのTTS)(未実装)
 ├── context/
-│   ├── context_builder.py        # sessionID, DiscordIDから該当の会話の要約と記憶データから現在の"文脈"を構築
-|   ├── memory_utils.py           # 文脈データ、ユーザーごとにパーソナライズされた記憶データの保存・読み込み
-|   └── session_manager.py        # スレッドとセッションの管理(スレッド作成, 削除(未実装), メタデータの保存と更新)
+│   ├── context_builder.py          # sessionID, DiscordIDから該当の会話の要約と記憶データから現在の"文脈"を構築
+|   ├── memory_utils.py             # 文脈データ、ユーザーごとにパーソナライズされた記憶データの保存・読み込み
+|   └── session_manager.py          # スレッドとセッションの管理(スレッド作成, 削除(未実装), メタデータの保存と更新)
 ├── listeners/
-|   └── mention_listener.py       # セッション内でのメンション検知
+|   └── mention_listener.py         # セッション内でのメンション検知
 ├──prompts/
-│   ├── ask.txt                   # 一問一答用プロンプトテンプレート
-│   ├── newsession.txt            # 新規会話用プロンプトテンプレート
-|   └── talk.txt                  # 文脈と記憶を利用した会話のプロンプトテンプレート
+│   ├── ask.txt                     # 一問一答用プロンプトテンプレート
+│   ├── newsession.txt              # 新規会話セッション用プロンプトテンプレート
+|   └── talk.txt                    # 会話セッション用プロンプトテンプレート
 ├── data/
 │   ├── memory/
-│   │   ├{userID}.json            # セッションを跨いだユーザーごとの長期記憶情報
+│   │   ├{userID}.json              # セッションを跨いだユーザーごとの長期記憶情報
 │   │   └...
 │   ├── session/
-│   │   ├{userID}_{sessionID}.json# セッションごとの文脈情報
-│   │   ├session_threads.json     # セッションごとのメタデータ
+│   │   ├{userID}_{sessionID}.json  # セッションごとの文脈情報
+│   │   ├session_threads.json       # セッションごとのメタデータ
 │   │   └...
-│   ├── config.json               # プロンプトのパスなどのBotの設定ファイル
-│   ├── toggle_state.json         # On/Offの状態保存
-│   └── topics.json               # 会話のタグ一覧と分類情報
+│   ├── config.json                 # プロンプトのパスなどのBotの設定ファイル
+│   ├── toggle_state.json           # On/Offの状態保存
+│   └── topics.json                 # 会話のタグ一覧と分類情報
 ├──img/
-│   └── icon.png                  # Discordのアイコン画像
-├── .env                          # APIキーやトークン(環境変数)
-├── requirements.txt              # 必要ライブラリ
-└── README.md                     # 説明書
+│   └── icon.png                    # Discordのアイコン画像
+├── .env                            # APIキーやトークン(環境変数)
+├── requirements.txt                # 必要ライブラリ
+└── README.md                       # 説明書
 ```
 
 ---
@@ -168,7 +183,7 @@ discord_gemini_bot/
 
 ### 目的
 - 単発の質問回答に留まらず、過去の会話(文脈)や記憶(会話を横断した長期記憶)を参照した一貫性のある応答を可能にすること。
-- 主題タグに基づいてセッション管理と切り替えを容易にすること。
+- 主題に基づいてセッション管理と切り替えを容易にすること。
 - スレッドを用いた可視的・永続的なセッション単位の管理を可能とすること。
 
 ### 要件分類
@@ -188,15 +203,15 @@ D. プロンプト拡張構造
 - 各回答生成時には以下をプロンプトに統合：
 ```makefile
 system: 設定と回答形式など(prompts/ask.txt等を参照)
-主題タグ: #ExampleTopic
-直近の発話要約: 会話履歴の要約形式(n件)
-長期記憶: 今後の回答生成に必要なユーザー情報
-発話本文: ユーザーの今回の入力
+主題: ExampleTopic
+直近の会話要約: 会話履歴の要約形式(n件)
+長期記憶: 今後の回答生成に必要なユーザーごとにパーソナライズした情報
+メッセージ本文: ユーザーの今回の入力
 ```
 
 E. スレッド管理
 - 新規セッション追加時、主題タグによって一意に管理されるスレッドを作成。
-- スレッド作成時、先頭にメタデータを記録。
+- スレッド作成時、メタデータを記録。
 - ユーザーによるスレッド操作をコマンドによるbot経由に限定。管理者用コマンドにより可視性と保守性を確保。
 
 ### 各種関係コマンド一覧
@@ -216,8 +231,8 @@ E. スレッド管理
 |項目|内容|
 |----|----|
 |セッションID|Discord上のスレッドIDと1:1で対応|
-|主題タグ|発話から抽出される主題を表す単語または句(例: 旅行計画, 転職活動, BOT作成)|
-|文脈履歴|過去のユーザー発話・応答履歴を簡略化して保存(トークン制限を考慮)
+|主題|発話から抽出される主題を表す単語または句(例: 旅行計画, 転職活動, BOT作成)|
+|文脈|過去のユーザー発話・応答履歴を簡略化して保存(トークン制限を考慮)
 |作成者|セッションの作成元ユーザーID|
 |参加者|スレッドに参加している他のユーザーIDリスト|
 
@@ -225,7 +240,7 @@ E. スレッド管理
 ```mermaid
 graph TD;
     A[ユーザーが/newsessionを使用] --> B[引数main_textをBotが受け取る]
-    B --> C[生成AIによる主題タグ抽出(例:AI開発)]
+    B --> C[生成AIによる主題抽出(例:AI開発)]
     C --> D{既存セッションに類似タグあり？}
     D -- Yes --> E[同ユーザーの既存スレッドの利用提案]
     D -- No --> F[新しいセッション作成]
@@ -263,7 +278,7 @@ graph TD;
 ### スレッド権限管理ポリシー
 |操作|実行者|説明|
 |----|----|----|
-|スレッド作成|Botのみ|主題タグベースで命名。#[tag]|
+|スレッド作成|Botのみ|主題ベースで命名。#[tag]|
 |スレッド招待|Bot|/share_session経由のみで追加|
 |スレッド削除|Bot・管理者|/delete_session実行時、または管理者判断で|
 |ユーザー編集|不可|スレッド名・構造をBot専用領域とし、改名や離脱は制限|
@@ -272,27 +287,22 @@ graph TD;
 ```
 discord_gemini_bot/
 ├── context/
-│   ├── history_manager.py        # ユーザー/チャンネルごとの直近履歴のロード・保存・取得(短期記憶)
-│   ├── memory_manager.py         # 長期記憶の読み書き、記憶更新(パーソナリティ、好みなど)
-│   ├── topic_manager.py          # トピック分類・タグ付け・会話の話題管理(将来拡張)
-│   └── context_builder.py        # 現在の質問・履歴・記憶を組み合わせた文脈生成ロジック
+│   ├── session_manager.py    # セッション管理
+│   └── memory_utils.py       # 文脈と記憶の保存・更新・読み込み
 ```
 
 #### 各モジュールの役割(編集中)
-##### 1. context/history_manager.py
-
-##### 2. context/memory_manager.py
-
-##### 3. context/topic_manager.py
-
-##### 4. context/context_builder.py
 
 ---
 
 ## 音声入出力
+- 音声出力<br>
 実装予定。技術選定中。Bert-VITS2やF5-TTS?
 自由度、音質はBert-VITS2が良さそう。
 F5-TTSは2024年の論文で情報が少ないが、python動作でAPI連携が容易であることや動作が他TTSより高速である可能性がある。
+スレッドとの兼ね合いを考える必要アリ。
+- 音声入力<br>
+現在保留。実装しない可能性大。
 
 ---
 
