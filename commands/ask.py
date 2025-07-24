@@ -39,7 +39,7 @@ def setup(bot):
             response = selected_model.generate_content(prompt)
 
             embed = discord.Embed(
-                title="💬 しつもん！",
+                title="アリカに質問",
                 description=f"**あなたの質問：**\n{question}\n\n**回答：**\n{response.text}",
                 color=0x7AAEDC
             )

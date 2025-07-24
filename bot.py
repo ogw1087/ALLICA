@@ -14,6 +14,7 @@ with open("data/config.json", encoding="utf-8") as f:
 
 # Bot 初期化
 intents = discord.Intents.default()
+intents.message_content = True
 bot = commands.Bot(command_prefix="/", intents=intents)
 bot.config = config
 bot.toggle_enabled = True  # 初期状態で有効
@@ -24,6 +25,9 @@ from commands.toggle import setup as setup_toggle
 from commands.newsession import setup as setup_newsession
 from commands.talk import setup as setup_talk
 
+# リスナー読み込み
+from listeners.mention_listener import setup as setup_mention_listener
+
 @bot.event
 async def on_ready():
     # Cogの登録
@@ -31,10 +35,8 @@ async def on_ready():
     setup_toggle(bot)
     await setup_newsession(bot)
     await setup_talk(bot)
-
-    # コマンド同期
-    #GUILD = discord.Object(id=761990190637121537)
-    #await bot.tree.sync(guild=GUILD)
+    await setup_mention_listener(bot)
+    
     await bot.tree.sync()
     print(f"✅ Bot is ready. Logged in as {bot.user}")
 

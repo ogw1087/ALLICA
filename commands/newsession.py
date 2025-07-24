@@ -1,4 +1,3 @@
-# commands/newsession.py
 import os
 import uuid
 import json
@@ -41,29 +40,29 @@ class NewSession(commands.Cog):
         # model.value にモデル名文字列が入る
         model_name = model.value if model else "gemini-2.0-flash-lite-001"
 
-        # --- 長期記憶の読み込み ---
+        # 長期記憶の読み込み
         mem_path = os.path.join("data", "memory", f"{user_id}.json")
         user_memory = open(mem_path, encoding="utf-8").read().strip() if os.path.exists(mem_path) else "なし"
 
-        # --- プロンプト生成 ---
+        # プロンプト生成
         prompt = open("prompts/newsession.txt", encoding="utf-8").read()
         prompt = prompt.replace("{memory}", user_memory).replace("{input}", message)
 
-        # --- Gemini 呼び出し ---
+        # Gemini 呼び出し
         raw = call_gemini(prompt, model=model_name)
         cleaned_raw = strip_code_block(raw)
         try:
             output = json.loads(cleaned_raw)
         except json.JSONDecodeError:
             print("text = \n"+raw+"\n")
-            return await interaction.followup.send("❌ Gemini の出力が JSON ではありませんでした。", ephemeral=True)
+            return await interaction.followup.send("err: Gemini の出力が JSON ではありませんでした。", ephemeral=True)
 
         topic    = output.get("topic", "未分類")
         reply    = output.get("reply", "")
         summary  = output.get("summary", "")
         new_mem  = output.get("long_term_memory", "なし")
 
-        # --- スレッド作成 & 招待 ---
+        # スレッド作成 & 招待
         thread = await interaction.channel.create_thread(
             name=topic,
             type=discord.ChannelType.private_thread,
@@ -71,20 +70,23 @@ class NewSession(commands.Cog):
         )
         await thread.add_user(interaction.user)
 
-        # --- セッション登録 ---
+        # セッション登録
         session_id = str(uuid.uuid4())
         create_session(thread.id, user_id, topic, model_name, session_id)
 
-        # --- 要約・記憶更新 ---
+        # 要約・記憶更新
         save_summary(user_id, session_id, summary)
         save_memory(user_id, new_mem)
 
-        # --- スレッドへ返答 ---
+        # ユーザーからの初回メッセージをログとしてスレッド先頭に表示
+        await thread.send(f">>> **{interaction.user.display_name}**: {message}")
+
+        # スレッド内へ返答
         await thread.send(reply)
 
-        # --- ユーザーへの通知 ---
+        # ユーザーへの通知
         await interaction.followup.send(
-            f"✅ 新規セッションを開始しました。\n"
+            f"新規セッションを開始しました。\n"
             f"`Session ID:` {session_id}\n"
             f"`Topic:` {topic}\n"
             f"`Thread:` {thread.mention}",
