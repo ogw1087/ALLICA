@@ -51,7 +51,7 @@ class DeleteSession(commands.Cog):
         if not session:
             return await interaction.followup.send("このスレッドに対応するセッションは存在しません。", ephemeral=True)
 
-        if session["user_id"] != user_id:
+        if session["owner_id"] != user_id:
             return await interaction.followup.send("このセッションを削除できるのは作成者のみです。", ephemeral=True)
 
         topic = session["topic"]

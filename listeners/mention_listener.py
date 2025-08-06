@@ -2,7 +2,7 @@ import discord
 import json
 from discord.ext import commands
 
-from context.session_manager import get_session_by_thread, update_session_model
+from context.session_manager import get_session_by_thread
 from context.memory_utils import load_summary, save_summary, load_memory, save_memory
 from gemini.client import call_gemini, strip_code_block
 
@@ -12,14 +12,17 @@ class MentionListener(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
+        # メンションを正常に受け取っているか確認するためのコード
+        # print(f"[DEBUG] on_message triggered: {message.author} said: {message.content}")
+        # print(f"[DEBUG] message.mentions: {message.mentions}")
+        # print(f"[DEBUG] bot.user: {self.bot.user} ({self.bot.user.id})")
+        
         # 無視条件：Bot自身、他のBot、メンションなし、DM
         if message.author.bot or message.guild is None:
             return
 
         if self.bot.user not in message.mentions:
             return
-        
-        print("\nMention catched.\n")
 
         # メンションを除いた本文（@Bot名 を除去）
         mention_text = message.clean_content.replace(f"@{self.bot.user.name}", "").strip()
@@ -52,6 +55,7 @@ class MentionListener(commands.Cog):
             .replace("{history}", history_text)
             .replace("{memory}", memory_text)
             .replace("{input}", mention_text)
+            .replace("{user}", message.author.display_name)
         )
 
         # Gemini 呼び出し

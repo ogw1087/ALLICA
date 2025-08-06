@@ -14,8 +14,8 @@ def ensure_dir(path: str):
     os.makedirs(path, exist_ok=True)
 
 
-def get_session_file(user_id: str, session_id: str) -> str:
-    return os.path.join(SESSION_DIR, f"{user_id}_{session_id}.json")
+def get_session_file(session_id: str) -> str:
+    return os.path.join(SESSION_DIR, f"{session_id}.json")
 
 
 def get_memory_file(user_id: str) -> str:
@@ -27,7 +27,7 @@ def save_summary(user_id: str, session_id: str, summary_text: str):
     要約履歴を追加保存。最大SUMMARY_LIMIT件まで保持。
     """
     ensure_dir(SESSION_DIR)
-    path = get_session_file(user_id, session_id)
+    path = get_session_file(session_id)
     # 読み込み
     if os.path.exists(path):
         with open(path, 'r', encoding='utf-8') as f:
@@ -48,7 +48,7 @@ def load_summary(user_id: str, session_id: str) -> str:
     """
     セッションの要約履歴を結合して返す
     """
-    path = get_session_file(user_id, session_id)
+    path = get_session_file(session_id)
     if not os.path.exists(path):
         return ""
     with open(path, 'r', encoding='utf-8') as f:

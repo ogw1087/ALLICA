@@ -66,6 +66,7 @@ class Talk(commands.Cog):
             .replace("{history}", history_text)
             .replace("{memory}", memory_text)
             .replace("{input}", message)
+            .replace("{user}", interaction.user.display_name)
         )
 
         # Gemini呼び出し

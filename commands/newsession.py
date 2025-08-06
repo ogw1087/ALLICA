@@ -36,17 +36,17 @@ class NewSession(commands.Cog):
     ):
         await interaction.response.defer(thinking=True)
 
-        user_id = str(interaction.user.id)
+        owner_id = str(interaction.user.id)
         # model.value にモデル名文字列が入る
         model_name = model.value if model else "gemini-2.0-flash-lite-001"
 
         # 長期記憶の読み込み
-        mem_path = os.path.join("data", "memory", f"{user_id}.json")
+        mem_path = os.path.join("data", "memory", f"{owner_id}.json")
         user_memory = open(mem_path, encoding="utf-8").read().strip() if os.path.exists(mem_path) else "なし"
 
         # プロンプト生成
         prompt = open("prompts/newsession.txt", encoding="utf-8").read()
-        prompt = prompt.replace("{memory}", user_memory).replace("{input}", message)
+        prompt = prompt.replace("{memory}", user_memory).replace("{input}", message).replace("{user}", interaction.user.display_name)
 
         # Gemini 呼び出し
         raw = call_gemini(prompt, model=model_name)
@@ -72,13 +72,13 @@ class NewSession(commands.Cog):
 
         # セッション登録
         session_id = str(uuid.uuid4())
-        create_session(thread.id, user_id, topic, model_name, session_id)
+        create_session(thread.id, owner_id, topic, model_name, session_id)
 
         # 要約・記憶更新
-        save_summary(user_id, session_id, summary)
-        save_memory(user_id, new_mem)
+        save_summary(owner_id, session_id, summary)
+        save_memory(owner_id, new_mem)
 
-        # ユーザーからの初回メッセージをログとしてスレッド先頭に表示
+        # ユーザーからのメッセージをログとしてスレッドに表示
         await thread.send(f">>> **{interaction.user.display_name}**: {message}")
 
         # スレッド内へ返答
