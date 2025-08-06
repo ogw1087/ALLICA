@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 # 環境変数の読み込み
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+GUILD_ID = os.getenv("GUILD_ID")
 
 # 設定ファイルの読み込み
 with open("data/config.json", encoding="utf-8") as f:
@@ -44,6 +45,10 @@ async def on_ready():
     await setup_delete_session(bot)
     await setup_allsessions(bot)
     await setup_share_session(bot)
+
+    # コマンド同期
+    GUILD = discord.Object(id=GUILD_ID)
+    await bot.tree.sync(guild=GUILD)
 
     await bot.tree.sync()
     print(f"✅ Bot is ready. Logged in as {bot.user}")
