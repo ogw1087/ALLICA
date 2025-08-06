@@ -78,13 +78,9 @@ class MentionListener(commands.Cog):
         save_summary(user_id, session_id, summary)
         save_memory(user_id, new_mem)
 
-        # 返信を送信（Embed 形式）
-        embed = discord.Embed(
-            title=f"A.L.L.I.C.A. — {topic}",
-            description=reply,
-            color=0x7AAEDC
-        )
-        await message.channel.send(embed=embed)
+        # 返答をスレッドに送信
+        await message.channel.send(reply)
 
+        
 async def setup(bot: commands.Bot):
     await bot.add_cog(MentionListener(bot))

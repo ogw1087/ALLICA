@@ -87,7 +87,7 @@ class NewSession(commands.Cog):
         # ユーザーへの通知
         await interaction.followup.send(
             f"新規セッションを開始しました。\n"
-            f"`Session ID:` {session_id}\n"
+            # f"`Session ID:` {session_id}\n"
             f"`Topic:` {topic}\n"
             f"`Thread:` {thread.mention}",
             ephemeral=True

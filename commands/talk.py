@@ -48,14 +48,14 @@ class Talk(commands.Cog):
 
         # モデルの選択 or セッション既定
         model_name = model.value if model else session["model"]
-        # 指定があった場合はセッション情報も更新しておく
+        # 指定があった場合はセッション情報も更新
         if model and model.value != session["model"]:
             update_session_model(thread_id, model.value)
 
         session_id = session["session_id"]
         topic      = session["topic"]
 
-        # 文脈（要約履歴）と長期記憶 をロード
+        # 文脈(要約履歴)と長期記憶 をロード
         history_text = load_summary(user_id, session_id) or "（履歴なし）"
         memory_text  = load_memory(user_id) or "なし"
 
@@ -90,13 +90,9 @@ class Talk(commands.Cog):
         save_summary(user_id, session_id, summary)
         save_memory(user_id, new_mem)
 
-        # 返答を埋め込みでスレッドに送信
-        embed = discord.Embed(
-            title=f"A.L.L.I.C.A. — {topic}",
-            description=reply,
-            color=0x7AAEDC
-        )
-        await interaction.followup.send(embed=embed)
+        # 返答をスレッドに送信
+        await interaction.channel.send(f">>> **{interaction.user.display_name}**: {message}")
+        await interaction.channel.send(reply)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Talk(bot))
