@@ -79,7 +79,7 @@ class DeleteSession(commands.Cog):
 
         # 文脈情報ファイルを削除
         try:
-            summary_path = os.path.join("data", "session", f"{user_id}_{session_id}.json")
+            summary_path = os.path.join("data", "session", f"{session_id}.json")
             if os.path.exists(summary_path):
                 os.remove(summary_path)
         except Exception as e:
