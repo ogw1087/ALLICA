@@ -75,11 +75,10 @@ class Talk(commands.Cog):
         try:
             output = json.loads(cleaned_raw)
         except json.JSONDecodeError:
-            print("text = \n"+raw+"\n")
-            return await interaction.followup.send(
-                "err: Geminiの出力が正しいJSONではありませんでした。",
-                ephemeral=True
-            )
+            print("text = \n"+raw+"\nerr: Geminiの出力が正しいJSONではありませんでした。")
+            return await message.reply("ふにゃっ！？……ちょ、ちょっとお待ちください、ご主人っ！\n" +
+                "アリカの回路がちょっぴり混線して、うまくお返事がまとめられなかったみたいです……（ぐぬぬ）。\n" +
+                "もう一度話しかけてもらえたら、今度こそきちんとお答えしますにゃ！", mention_author=True)
 
         # JSONから抽出
         reply   = output.get("reply", "")

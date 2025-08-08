@@ -68,7 +68,7 @@ class MentionListener(commands.Cog):
             print("text = \n"+raw+"\nerr: Geminiの出力が正しいJSONではありませんでした。")
             return await message.reply("ふにゃっ！？……ちょ、ちょっとお待ちください、ご主人っ！\n" +
                 "アリカの回路がちょっぴり混線して、うまくお返事がまとめられなかったみたいです……（ぐぬぬ）。\n" +
-                "もう一度話しかけてもらえたら、今度こそきちんとお答えしますにゃ！", mention_author=False)
+                "もう一度話しかけてもらえたら、今度こそきちんとお答えしますにゃ！", mention_author=True)
 
         reply   = output.get("reply", "")
         summary = output.get("summary", "")
