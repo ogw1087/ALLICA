@@ -6,6 +6,7 @@ import json
 from context.session_manager import get_session_by_thread, update_session_model
 from context.memory_utils import load_summary, save_summary, load_memory, save_memory
 from gemini.client import call_gemini, strip_code_block
+from voice.voice_manager import play_text_for_session
 
 class Talk(commands.Cog):
     def __init__(self, bot):
@@ -92,6 +93,9 @@ class Talk(commands.Cog):
         # 返答をスレッドに送信
         await interaction.channel.send(f">>> **{interaction.user.display_name}**: {message}")
         await interaction.channel.send(reply)
+
+        # ボイスチャンネルでの読み上げ
+        await play_text_for_session(self.bot, thread_id, reply)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Talk(bot))

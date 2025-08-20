@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 # 環境変数の読み込み
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
-GUILD_ID = os.getenv("GUILD_ID")
+GUILD_ID = int(os.getenv("GUILD_ID"))
 
 # 設定ファイルの読み込み
 with open("data/config.json", encoding="utf-8") as f:
@@ -29,6 +29,8 @@ from commands.change_model import setup as setup_change_model
 from commands.delete_session import setup as setup_delete_session
 from commands.allsessions import setup as setup_allsessions
 from commands.share_session import setup as setup_share_session
+from commands.join_vc import setup as setup_join_vc
+from commands.leave_vc import setup as setup_leave_vc
 
 # リスナー読み込み
 from listeners.mention_listener import setup as setup_mention_listener
@@ -45,6 +47,8 @@ async def on_ready():
     await setup_delete_session(bot)
     await setup_allsessions(bot)
     await setup_share_session(bot)
+    await setup_join_vc(bot)
+    await setup_leave_vc(bot)
 
     # コマンド同期
     GUILD = discord.Object(id=GUILD_ID)
